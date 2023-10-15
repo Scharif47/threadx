@@ -17,7 +17,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { UserValidationSchema } from "@/lib/validations/user";
 import * as z from "zod";
 import Image from "next/image";
-import { ChangeEvent } from "react";
+import { ChangeEvent, useState } from "react";
+import { isBase64Image } from "@/lib/utils";
+import { useUploadThing } from "@/lib/uploadthing";
 
 interface AccountProfileProps {
   user: {
@@ -32,31 +34,67 @@ interface AccountProfileProps {
 }
 
 const AccountProfile = ({ user, btnTitle }: AccountProfileProps) => {
+  const [files, setFiles] = useState<File[]>([]);
+  const { startUpload } = useUploadThing("media");
+
   // Get zod schema for form
   const form = useForm({
     resolver: zodResolver(UserValidationSchema),
     defaultValues: {
-      profile_photo: "",
-      name: "",
-      username: "",
-      bio: "",
+      profile_photo: user?.image || "",
+      name: user?.name || "",
+      username: user?.username || "",
+      bio: user?.bio || "",
     },
   });
 
   // Function to handle image upload
   const handleImage = (
-    e: ChangeEvent,
+    e: ChangeEvent<HTMLInputElement>,
     fieldChange: (value: string) => void
   ) => {
     e.preventDefault();
+
+    // Get the file reader funcionaity
+    const fileReader = new FileReader();
+
+    // Check if there is a file
+    if (e.target.files && e.target.files.length > 0) {
+      // Get the file
+      const file = e.target.files[0];
+      // Set the state to the file
+      setFiles(Array.from(e.target.files));
+      // If there is a file, retrun out of the function
+      if (!file.type.includes("image")) return;
+      // If there is no file, read the file
+      fileReader.onload = async (event) => {
+        const imageDataUrl = event.target?.result?.toString() || "";
+        // Update the field with imageDataUrl
+        fieldChange(imageDataUrl);
+      };
+      // Change the image
+      fileReader.readAsDataURL(file);
+    }
   };
 
   // 2. Define a submit handler.
-  function onSubmit(values: z.infer<typeof UserValidationSchema>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
-  }
+  const onSubmit = async (values: z.infer<typeof UserValidationSchema>) => {
+    // Get the file
+    const blob = values.profile_photo;
+
+    // Check if the image has changed
+    const hasImageChanged = isBase64Image(blob);
+
+    // If the image has changed, upload the image
+    if (hasImageChanged) {
+      const imgRes = await startUpload(files);
+      if (imgRes && imgRes[0].url) {
+        values.profile_photo = imgRes[0].url;
+      }
+    }
+
+    // TODO: Update the user profile
+  };
 
   return (
     <Form {...form}>
@@ -126,7 +164,7 @@ const AccountProfile = ({ user, btnTitle }: AccountProfileProps) => {
         {/* Field for username */}
         <FormField
           control={form.control}
-          name="name"
+          name="username"
           render={({ field }) => (
             <FormItem className="flex flex-col gap-3 w-full">
               <FormLabel className="text-base-semibold text-light-2">
@@ -146,7 +184,7 @@ const AccountProfile = ({ user, btnTitle }: AccountProfileProps) => {
         {/* Field for bio */}
         <FormField
           control={form.control}
-          name="name"
+          name="bio"
           render={({ field }) => (
             <FormItem className="flex flex-col gap-3 w-full">
               <FormLabel className="text-base-semibold text-light-2">
