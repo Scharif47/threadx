@@ -20,6 +20,8 @@ import Image from "next/image";
 import { ChangeEvent, useState } from "react";
 import { isBase64Image } from "@/lib/utils";
 import { useUploadThing } from "@/lib/uploadthing";
+import { updateUser } from "@/lib/actions/user.actions";
+import { usePathname, useRouter } from "next/navigation";
 
 interface AccountProfileProps {
   user: {
@@ -36,6 +38,9 @@ interface AccountProfileProps {
 const AccountProfile = ({ user, btnTitle }: AccountProfileProps) => {
   const [files, setFiles] = useState<File[]>([]);
   const { startUpload } = useUploadThing("media");
+
+  const router = useRouter();
+  const pathname = usePathname();
 
   // Get zod schema for form
   const form = useForm({
@@ -93,7 +98,23 @@ const AccountProfile = ({ user, btnTitle }: AccountProfileProps) => {
       }
     }
 
-    // TODO: Update the user profile
+    // Update the user profile
+    await updateUser({
+      userId: user.id,
+      username: values.username,
+      name: values.name,
+      bio: values.bio,
+      image: values.profile_photo,
+      path: pathname,
+    });
+
+    // Redirect to the user profile
+    if (pathname === "profile/edit") {
+      // Go back to previous page after editing profile
+      router.back();
+    } else {
+      router.push("/");
+    }
   };
 
   return (
