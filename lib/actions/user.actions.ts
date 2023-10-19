@@ -14,6 +14,7 @@ interface UpdateUserParams {
   path: string;
 }
 
+// Create and export the function to update the user
 export async function updateUser({
   userId,
   username,
@@ -44,5 +45,23 @@ export async function updateUser({
     }
   } catch (error: any) {
     throw new Error(`Failed to create/update user: ${error.message}`);
+  }
+}
+
+// Create and export the function to fetch the user
+export async function fetchUser(userId: string) {
+  try {
+    // Connect to the database
+    connectToDB();
+
+    return await User
+    .findOne({id: userId})
+    // .populate({
+    //   path: 'communities',
+    //   model: 'Community',
+    // })
+
+  } catch(error: any) {
+    throw new Error(`Failed to fetch user: ${error.message}`);
   }
 }
