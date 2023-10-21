@@ -2,7 +2,7 @@ import * as z from "zod";
 
 // User validation schema
 export const UserValidationSchema = z.object({
-  profile_photo: z.string().url().min(3),
+  profile_photo: z.string().url().min(1),
   name: z.string().min(3).max(30),
   username: z
     .string()
