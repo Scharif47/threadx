@@ -39,7 +39,7 @@ const ThreadCard = ({
   return (
     <article
       className={`flex w-full flex-col rounded-xl ${
-        isComment ? "px-0 xs:px-7 mt-5" : "bg-dark-2 p-7"
+        isComment ? "px-0 xs:px-7 " : "bg-dark-2 p-7"
       }`}
     >
       <div className="flex items-start justify-between">
@@ -67,7 +67,7 @@ const ThreadCard = ({
 
             <p className="mt-2 text-samll-regular text-light-2">{content}</p>
 
-            <div className="flex flex-col mt-5 gap-3">
+            <div className={`flex flex-col mt-5 gap-3 ${isComment && 'mb-10'}`}>
               <div className="flex gap-3.5">
                 <Image
                   src="/assets/heart-gray.svg"

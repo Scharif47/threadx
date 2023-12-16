@@ -12,8 +12,6 @@ export default async function Home() {
 
   return (
     <>
-      <h1 className="head-text text-left">Home</h1>
-
       <section className="flex flex-col mt-9 gap-10">
         {threads.length === 0 ? (
           <p className="no-result">No Threads found</p>
