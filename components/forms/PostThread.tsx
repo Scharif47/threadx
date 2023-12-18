@@ -15,24 +15,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { usePathname, useRouter } from "next/navigation";
 // import { updateUser } from "@/lib/actions/user.actions";
+import { useOrganization } from "@clerk/nextjs";
 import { ThreadValidationSchema } from "@/lib/validations/thread";
 import { createThread } from "@/lib/actions/thread.actions";
-
-interface AccountProfileProps {
-  user: {
-    id: string;
-    objectId: string;
-    username: string;
-    name: string;
-    bio: string;
-    image: string;
-  };
-  btnTitle: string;
-}
 
 function PostThread({ userId }: { userId: string }) {
   const router = useRouter();
   const pathname = usePathname();
+  const { organization } = useOrganization();
 
   // Get zod schema for form
   const form = useForm({
@@ -45,15 +35,15 @@ function PostThread({ userId }: { userId: string }) {
 
   // Function to handle form submission
   const onSubmit = async (values: z.infer<typeof ThreadValidationSchema>) => {
-     await createThread({
+    await createThread({
       text: values.thread,
       author: values.accountId,
-      communityId: null,  // TODO: add communityId 
+      communityId: organization ? organization.id : null,
       path: pathname,
-    })
+    });
 
     // Move user to home
-    router.push("/")
+    router.push("/");
   };
 
   return (
